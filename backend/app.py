@@ -8,8 +8,8 @@ CORS(app)
 
 # PostgreSQL Connection
 db = psycopg2.connect(
-    host="dpg-d86ojd9kh4rs73eu1o0g-a",
-    database="jobportal",
+    host="dpg-d86ojd9kh4rs73eu1o0g-a.ohio-postgres.render.com",
+    database="jobportal_1z0h",
     user="jobportal_user",
     password="TWpyrWdQLPvo3xwmRjj3Dkm68ZRBsOYL",
     port="5432"
