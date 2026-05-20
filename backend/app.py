@@ -10,7 +10,7 @@ CORS(app)
 # MySQL Connection
 
 db = mysql.connector.connect(
-    host="mysql.railway.internal",
+    host="mysql://root:IEeyYrDGBioFXxJGJMwTmoAzAGBKOEWh@shuttle.proxy.rlwy.net:46450/railway",
     user="root",
     password="IEeyYrDGBioFXxJGJMwTmoAzAGBKOEWh",
     database="railway",
