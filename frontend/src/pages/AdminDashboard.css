@@ -1,0 +1,82 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: #f1f5f9;
+  padding: 40px;
+}
+
+.dashboard-container h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #1e293b;
+}
+
+.dashboard-stats {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 50px;
+  flex-wrap: wrap;
+}
+
+.dashboard-card {
+  background: white;
+  width: 250px;
+  padding: 30px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.dashboard-card h2 {
+  margin-bottom: 15px;
+  color: #334155;
+}
+
+.dashboard-card p {
+  font-size: 32px;
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.jobs-section {
+  background: white;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.jobs-section h2 {
+  margin-bottom: 25px;
+  color: #1e293b;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table thead {
+  background: #2563eb;
+  color: white;
+}
+
+table th,
+table td {
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
