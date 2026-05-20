@@ -1,0 +1,204 @@
+body {
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  background: #f4f7fb;
+}
+
+.login-container {
+
+  min-height: 90vh;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* LEFT */
+
+.login-left {
+
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #1e3a8a
+  );
+
+  color: white;
+
+  padding: 80px 50px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.login-left h1 {
+
+  font-size: 50px;
+
+  margin-bottom: 20px;
+}
+
+.login-left p {
+
+  font-size: 20px;
+
+  line-height: 1.7;
+}
+
+.login-left ul {
+
+  margin-top: 30px;
+
+  line-height: 2;
+
+  font-size: 18px;
+}
+
+/* RIGHT */
+
+.login-right {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 40px;
+}
+
+.login-box {
+
+  background: white;
+
+  width: 100%;
+
+  max-width: 420px;
+
+  padding: 40px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.12);
+}
+
+.login-box h2 {
+
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+.login-box input {
+
+  width: 100%;
+
+  padding: 14px;
+
+  margin-bottom: 15px;
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 8px;
+}
+
+.login-box button {
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  background: #2563eb;
+
+  color: white;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: bold;
+}
+
+.switch-text {
+
+  text-align: center;
+
+  margin-top: 20px;
+}
+
+.switch-text a {
+
+  margin-left: 6px;
+
+  text-decoration: none;
+
+  color: #2563eb;
+
+  font-weight: bold;
+}
+
+/* FOOTER */
+
+.auth-footer {
+
+  background: #0f172a;
+
+  color: white;
+
+  text-align: center;
+
+  padding: 25px;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .login-left {
+
+    padding: 50px 30px;
+  }
+
+  .login-left h1 {
+
+    font-size: 36px;
+  }
+}
+.jobs-footer {
+
+  background: #0f172a;
+
+  color: white;
+
+  text-align: center;
+
+  padding: 40px 20px;
+
+  margin-top: 60px;
+}
+
+.jobs-footer h2 {
+
+  margin-bottom: 10px;
+
+  font-size: 28px;
+}
+
+.jobs-footer p {
+
+  margin: 8px 0;
+
+  font-size: 16px;
+}

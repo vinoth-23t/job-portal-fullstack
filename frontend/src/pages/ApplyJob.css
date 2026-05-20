@@ -1,0 +1,62 @@
+.apply-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #eff6ff;
+}
+
+.apply-box {
+  width: 500px;
+  background: white;
+  padding: 40px;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.apply-box h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.apply-box input,
+.apply-box textarea {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.apply-box textarea {
+  height: 120px;
+}
+
+.apply-box button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.welcome-text {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #475569;
+}
+
+.access-denied {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #dc2626;
+}
+
+.access-denied p {
+  margin-top: 10px;
+  color: #475569;
+}

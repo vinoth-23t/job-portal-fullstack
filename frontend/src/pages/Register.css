@@ -1,0 +1,179 @@
+body {
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  background: #f8fafc;
+}
+
+.register-container {
+
+  min-height: 90vh;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* LEFT */
+
+.register-left {
+
+  background: linear-gradient(
+    135deg,
+    #16a34a,
+    #166534
+  );
+
+  color: white;
+
+  padding: 80px 50px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.register-left h1 {
+
+  font-size: 50px;
+
+  margin-bottom: 20px;
+}
+
+.register-left p {
+
+  font-size: 20px;
+
+  line-height: 1.7;
+}
+
+.register-left ul {
+
+  margin-top: 30px;
+
+  line-height: 2;
+
+  font-size: 18px;
+}
+
+/* RIGHT */
+
+.register-right {
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 40px;
+}
+
+.register-box {
+
+  background: white;
+
+  width: 100%;
+
+  max-width: 420px;
+
+  padding: 40px;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 6px 18px rgba(0,0,0,0.12);
+}
+
+.register-box h2 {
+
+  text-align: center;
+
+  margin-bottom: 20px;
+}
+
+.register-box input,
+.register-box select {
+
+  width: 100%;
+
+  padding: 14px;
+
+  margin-bottom: 15px;
+
+  border: 1px solid #d1d5db;
+
+  border-radius: 8px;
+}
+
+.register-box button {
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  background: #16a34a;
+
+  color: white;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  font-weight: bold;
+}
+
+.switch-text {
+
+  text-align: center;
+
+  margin-top: 20px;
+}
+
+.switch-text a {
+
+  margin-left: 6px;
+
+  text-decoration: none;
+
+  color: #16a34a;
+
+  font-weight: bold;
+}
+
+/* FOOTER */
+
+.auth-footer {
+
+  background: #0f172a;
+
+  color: white;
+
+  text-align: center;
+
+  padding: 25px;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .register-left {
+
+    padding: 50px 30px;
+  }
+
+  .register-left h1 {
+
+    font-size: 36px;
+  }
+}
