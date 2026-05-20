@@ -1,46 +1,64 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import mysql.connector
+import psycopg2
 import requests
 
 app = Flask(__name__)
-
 CORS(app)
 
-# MySQL Connection
-
-db = mysql.connector.connect(
-    host="shuttle.proxy.rlwy.net",
-    user="root",
-    password="IEeyYrDGBioFXxJGJMwTmoAzAGBKOEWh",
-    database="railway",
-    port=46450
+# PostgreSQL Connection
+db = psycopg2.connect(
+    host="dpg-d86ojd9kh4rs73eu1o0g-a",
+    database="jobportal",
+    user="jobportal_user",
+    password="TWpyrWdQLPvo3xwmRjj3Dkm68ZRBsOYL",
+    port="5432"
 )
-# -----------------------------
+
+cursor = db.cursor()
+
+# CREATE TABLES AUTOMATICALLY
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    password VARCHAR(100),
+    role VARCHAR(20)
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS jobs (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(200),
+    company VARCHAR(200),
+    location VARCHAR(200),
+    salary VARCHAR(100),
+    description TEXT
+)
+""")
+
+db.commit()
+
 # HOME ROUTE
-# -----------------------------
 
 @app.route('/')
 def home():
 
     return jsonify({
-        "message":
-        "Job Portal Backend Running"
+        "message": "Job Portal Backend Running"
     })
 
-# -----------------------------
 # EXTERNAL JOBS API
-# -----------------------------
 
 @app.route('/external-jobs', methods=['GET'])
 def external_jobs():
 
     try:
 
-        url = (
-            "https://remotive.com/"
-            "api/remote-jobs"
-        )
+        url = "https://remotive.com/api/remote-jobs"
 
         response = requests.get(url)
 
@@ -54,9 +72,7 @@ def external_jobs():
             "message": str(e)
         })
 
-# -----------------------------
 # REGISTER API
-# -----------------------------
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -70,32 +86,11 @@ def register():
         password = data['password']
         role = data['role']
 
-        cursor = db.cursor()
-
-        # Check Existing User
-
-        check_query = '''
-        SELECT * FROM users
-        WHERE email = %s
-        '''
-
-        cursor.execute(check_query, (email,))
-
-        existing_user = cursor.fetchone()
-
-        if existing_user:
-
-            return jsonify({
-                "message":
-                "User Already Exists"
-            })
-
-        query = '''
+        query = """
         INSERT INTO users
         (name, email, password, role)
-
         VALUES (%s, %s, %s, %s)
-        '''
+        """
 
         values = (
             name,
@@ -119,9 +114,7 @@ def register():
             "message": str(e)
         })
 
-# -----------------------------
 # LOGIN API
-# -----------------------------
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -133,13 +126,10 @@ def login():
         email = data['email']
         password = data['password']
 
-        cursor = db.cursor()
-
-        query = '''
+        query = """
         SELECT * FROM users
-        WHERE email = %s
-        AND password = %s
-        '''
+        WHERE email=%s AND password=%s
+        """
 
         values = (
             email,
@@ -153,16 +143,10 @@ def login():
         if user:
 
             return jsonify({
-
-                "message":
-                "Login Successful",
-
+                "message": "Login Successful",
                 "id": user[0],
-
                 "name": user[1],
-
                 "email": user[2],
-
                 "role": user[4]
             })
 
@@ -179,9 +163,7 @@ def login():
             "message": str(e)
         })
 
-# -----------------------------
 # ADD JOB API
-# -----------------------------
 
 @app.route('/add-job', methods=['POST'])
 def add_job():
@@ -196,20 +178,11 @@ def add_job():
         salary = data['salary']
         description = data['description']
 
-        cursor = db.cursor()
-
-        query = '''
+        query = """
         INSERT INTO jobs
-        (
-            title,
-            company,
-            location,
-            salary,
-            description
-        )
-
+        (title, company, location, salary, description)
         VALUES (%s, %s, %s, %s, %s)
-        '''
+        """
 
         values = (
             title,
@@ -234,26 +207,33 @@ def add_job():
             "message": str(e)
         })
 
-# -----------------------------
 # GET JOBS API
-# -----------------------------
 
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
 
     try:
 
-        cursor = db.cursor(dictionary=True)
-
-        query = '''
-        SELECT * FROM jobs
-        '''
+        query = "SELECT * FROM jobs"
 
         cursor.execute(query)
 
         jobs = cursor.fetchall()
 
-        return jsonify(jobs)
+        jobs_list = []
+
+        for job in jobs:
+
+            jobs_list.append({
+                "id": job[0],
+                "title": job[1],
+                "company": job[2],
+                "location": job[3],
+                "salary": job[4],
+                "description": job[5]
+            })
+
+        return jsonify(jobs_list)
 
     except Exception as e:
 
@@ -261,9 +241,7 @@ def get_jobs():
             "message": str(e)
         })
 
-# -----------------------------
 # UPDATE JOB API
-# -----------------------------
 
 @app.route('/job/<int:id>', methods=['PUT'])
 def update_job(id):
@@ -278,20 +256,16 @@ def update_job(id):
         salary = data['salary']
         description = data['description']
 
-        cursor = db.cursor()
-
-        query = '''
+        query = """
         UPDATE jobs
-
         SET
-            title = %s,
-            company = %s,
-            location = %s,
-            salary = %s,
-            description = %s
-
-        WHERE id = %s
-        '''
+            title=%s,
+            company=%s,
+            location=%s,
+            salary=%s,
+            description=%s
+        WHERE id=%s
+        """
 
         values = (
             title,
@@ -317,23 +291,14 @@ def update_job(id):
             "message": str(e)
         })
 
-# -----------------------------
 # DELETE JOB API
-# -----------------------------
 
-@app.route('/job/<int:id>',
-methods=['DELETE'])
-
+@app.route('/job/<int:id>', methods=['DELETE'])
 def delete_job(id):
 
     try:
 
-        cursor = db.cursor()
-
-        query = '''
-        DELETE FROM jobs
-        WHERE id = %s
-        '''
+        query = "DELETE FROM jobs WHERE id=%s"
 
         cursor.execute(query, (id,))
 
@@ -350,9 +315,6 @@ def delete_job(id):
             "message": str(e)
         })
 
-# -----------------------------
-# RUN APP
-# -----------------------------
+if __name__ == '__main__':
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
