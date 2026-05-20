@@ -10,12 +10,12 @@ CORS(app)
 # MySQL Connection
 
 db = mysql.connector.connect(
-    host="localhost",
+    host="mysql.railway.internal",
     user="root",
-    password="1234",
-    database="job_portal"
+    password="IEeyYrDGBioFXxJGJMwTmoAzAGBKOEWh",
+    database="railway",
+    port=3306
 )
-
 # -----------------------------
 # HOME ROUTE
 # -----------------------------
