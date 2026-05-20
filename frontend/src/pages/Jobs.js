@@ -55,7 +55,7 @@ function Jobs() {
     try {
 
       const response = await axios.get(
-        "http://127.0.0.1:5000/jobs"
+        "https://job-portal-backend-czgj.onrender.com/jobs"
       );
 
       setJobs(response.data);
@@ -72,7 +72,7 @@ function Jobs() {
     try {
 
       const response = await axios.get(
-        "http://127.0.0.1:5000/external-jobs"
+        "https://job-portal-backend-czgj.onrender.com/external-jobs"
       );
 
       setExternalJobs(response.data);

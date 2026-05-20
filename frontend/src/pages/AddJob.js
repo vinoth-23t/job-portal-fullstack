@@ -63,7 +63,7 @@ function AddJob() {
     try {
 
       const response = await axios.post(
-        "http://127.0.0.1:5000/add-job",
+        "https://job-portal-backend-czgj.onrender.com/add-job",
         job
       );
 
