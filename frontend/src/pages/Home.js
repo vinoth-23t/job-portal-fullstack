@@ -1,6 +1,5 @@
 import Navbar from "../components/Navbar";
 import "./Home.css";
-import Jobs from "./Jobs";
 import { useNavigate } from "react-router-dom";
 
 function Home() {
@@ -209,4 +208,3 @@ function Home() {
     );
 }
 
-export default Home;
