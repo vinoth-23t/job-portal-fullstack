@@ -1,31 +1,32 @@
 import { useState } from "react";
-import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AddJob.css";
 
-function AddJob() {
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
+function ApplyJob() {
 
   // Logged User
   const user =
     JSON.parse(localStorage.getItem("user"));
 
-  // Form State
-  const [job, setJob] = useState({
-    title: "",
-    company: "",
-    location: "",
-    salary: "",
-    description: ""
-  });
+  // Resume State
+  const [resume, setResume] =
+    useState("");
 
-  // Restrict Access
-  if (
-    !user ||
-    (
-      user.role !== "admin" &&
-      user.role !== "recruiter"
-    )
-  ) {
+  // Candidate Only
+  if (!user) {
+
+    return (
+      <>
+        <Navbar />
+        <h1>Please Login</h1>
+      </>
+    );
+  }
+
+  if (user.role !== "candidate") {
 
     return (
       <>
@@ -36,24 +37,13 @@ function AddJob() {
           <h1>Access Denied</h1>
 
           <p>
-            Only Recruiters and Admins
-            can add jobs.
+            Only Candidates Can Apply
           </p>
 
         </div>
       </>
     );
   }
-
-  // Handle Change
-  const handleChange = (e) => {
-
-    setJob({
-      ...job,
-      [e.target.name]: e.target.value
-    });
-
-  };
 
   // Handle Submit
   const handleSubmit = async (e) => {
@@ -62,26 +52,20 @@ function AddJob() {
 
     try {
 
-      const response = await axios.post(
-        "https://job-portal-backend-czgj.onrender.com/add-job",
-        job
+      // Future backend API call
+      // await fetch(`${API}/apply-job`, { ... })
+
+      alert(
+        "Application Submitted Successfully"
       );
 
-      alert(response.data.message);
-
-      setJob({
-        title: "",
-        company: "",
-        location: "",
-        salary: "",
-        description: ""
-      });
+      setResume("");
 
     } catch (error) {
 
       console.log(error);
 
-      alert("Failed to Add Job");
+      alert("Failed To Apply");
     }
   };
 
@@ -93,56 +77,22 @@ function AddJob() {
 
         <div className="add-job-box">
 
-          <h2>Add New Job</h2>
+          <h2>Apply For Job</h2>
 
           <form onSubmit={handleSubmit}>
 
             <input
               type="text"
-              name="title"
-              placeholder="Job Title"
-              value={job.title}
-              onChange={handleChange}
+              placeholder="Enter Resume Link"
+              value={resume}
+              onChange={(e) =>
+                setResume(e.target.value)
+              }
               required
             />
-
-            <input
-              type="text"
-              name="company"
-              placeholder="Company Name"
-              value={job.company}
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={job.location}
-              onChange={handleChange}
-              required
-            />
-
-            <input
-              type="text"
-              name="salary"
-              placeholder="Salary"
-              value={job.salary}
-              onChange={handleChange}
-              required
-            />
-
-            <textarea
-              name="description"
-              placeholder="Job Description"
-              value={job.description}
-              onChange={handleChange}
-              required
-            ></textarea>
 
             <button type="submit">
-              Add Job
+              Submit Application
             </button>
 
           </form>
@@ -154,4 +104,4 @@ function AddJob() {
   );
 }
 
-export default AddJob;
+export default ApplyJob;
