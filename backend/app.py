@@ -1,21 +1,93 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import mysql.connector
+from flask_sqlalchemy import SQLAlchemy
 import requests
+import os
 
 app = Flask(__name__)
 
 CORS(app)
 
-# MySQL Connection
+# -----------------------------
+# DATABASE CONFIGURATION
+# -----------------------------
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="1234",
-    database="job_portal",
-    port=3306
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+# -----------------------------
+# USER MODEL
+# -----------------------------
+
+class User(db.Model):
+
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    email = db.Column(
+        db.String(100),
+        unique=True,
+        nullable=False
+    )
+
+    password = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    role = db.Column(
+        db.String(50),
+        nullable=False
+    )
+
+# -----------------------------
+# JOB MODEL
+# -----------------------------
+
+class Job(db.Model):
+
+    __tablename__ = "jobs"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    title = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    company = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    location = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    salary = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    description = db.Column(
+        db.Text,
+        nullable=False
+    )
+
 # -----------------------------
 # HOME ROUTE
 # -----------------------------
@@ -24,8 +96,7 @@ db = mysql.connector.connect(
 def home():
 
     return jsonify({
-        "message":
-        "Job Portal Backend Running"
+        "message": "Job Portal Backend Running"
     })
 
 # -----------------------------
@@ -37,10 +108,7 @@ def external_jobs():
 
     try:
 
-        url = (
-            "https://remotive.com/"
-            "api/remote-jobs"
-        )
+        url = "https://remotive.com/api/remote-jobs"
 
         response = requests.get(url)
 
@@ -70,43 +138,26 @@ def register():
         password = data['password']
         role = data['role']
 
-        cursor = db.cursor()
-
-        # Check Existing User
-
-        check_query = '''
-        SELECT * FROM users
-        WHERE email = %s
-        '''
-
-        cursor.execute(check_query, (email,))
-
-        existing_user = cursor.fetchone()
+        existing_user = User.query.filter_by(
+            email=email
+        ).first()
 
         if existing_user:
 
             return jsonify({
-                "message":
-                "User Already Exists"
+                "message": "User Already Exists"
             })
 
-        query = '''
-        INSERT INTO users
-        (name, email, password, role)
-
-        VALUES (%s, %s, %s, %s)
-        '''
-
-        values = (
-            name,
-            email,
-            password,
-            role
+        new_user = User(
+            name=name,
+            email=email,
+            password=password,
+            role=role
         )
 
-        cursor.execute(query, values)
+        db.session.add(new_user)
 
-        db.commit()
+        db.session.commit()
 
         return jsonify({
             "message":
@@ -133,22 +184,10 @@ def login():
         email = data['email']
         password = data['password']
 
-        cursor = db.cursor()
-
-        query = '''
-        SELECT * FROM users
-        WHERE email = %s
-        AND password = %s
-        '''
-
-        values = (
-            email,
-            password
-        )
-
-        cursor.execute(query, values)
-
-        user = cursor.fetchone()
+        user = User.query.filter_by(
+            email=email,
+            password=password
+        ).first()
 
         if user:
 
@@ -157,13 +196,13 @@ def login():
                 "message":
                 "Login Successful",
 
-                "id": user[0],
+                "id": user.id,
 
-                "name": user[1],
+                "name": user.name,
 
-                "email": user[2],
+                "email": user.email,
 
-                "role": user[4]
+                "role": user.role
             })
 
         else:
@@ -190,38 +229,18 @@ def add_job():
 
         data = request.json
 
-        title = data['title']
-        company = data['company']
-        location = data['location']
-        salary = data['salary']
-        description = data['description']
+        new_job = Job(
 
-        cursor = db.cursor()
-
-        query = '''
-        INSERT INTO jobs
-        (
-            title,
-            company,
-            location,
-            salary,
-            description
+            title=data['title'],
+            company=data['company'],
+            location=data['location'],
+            salary=data['salary'],
+            description=data['description']
         )
 
-        VALUES (%s, %s, %s, %s, %s)
-        '''
+        db.session.add(new_job)
 
-        values = (
-            title,
-            company,
-            location,
-            salary,
-            description
-        )
-
-        cursor.execute(query, values)
-
-        db.commit()
+        db.session.commit()
 
         return jsonify({
             "message":
@@ -243,17 +262,23 @@ def get_jobs():
 
     try:
 
-        cursor = db.cursor(dictionary=True)
+        jobs = Job.query.all()
 
-        query = '''
-        SELECT * FROM jobs
-        '''
+        jobs_list = []
 
-        cursor.execute(query)
+        for job in jobs:
 
-        jobs = cursor.fetchall()
+            jobs_list.append({
 
-        return jsonify(jobs)
+                "id": job.id,
+                "title": job.title,
+                "company": job.company,
+                "location": job.location,
+                "salary": job.salary,
+                "description": job.description
+            })
+
+        return jsonify(jobs_list)
 
     except Exception as e:
 
@@ -272,39 +297,22 @@ def update_job(id):
 
         data = request.json
 
-        title = data['title']
-        company = data['company']
-        location = data['location']
-        salary = data['salary']
-        description = data['description']
+        job = Job.query.get(id)
 
-        cursor = db.cursor()
+        if not job:
 
-        query = '''
-        UPDATE jobs
+            return jsonify({
+                "message":
+                "Job Not Found"
+            })
 
-        SET
-            title = %s,
-            company = %s,
-            location = %s,
-            salary = %s,
-            description = %s
+        job.title = data['title']
+        job.company = data['company']
+        job.location = data['location']
+        job.salary = data['salary']
+        job.description = data['description']
 
-        WHERE id = %s
-        '''
-
-        values = (
-            title,
-            company,
-            location,
-            salary,
-            description,
-            id
-        )
-
-        cursor.execute(query, values)
-
-        db.commit()
+        db.session.commit()
 
         return jsonify({
             "message":
@@ -321,23 +329,23 @@ def update_job(id):
 # DELETE JOB API
 # -----------------------------
 
-@app.route('/job/<int:id>',
-methods=['DELETE'])
-
+@app.route('/job/<int:id>', methods=['DELETE'])
 def delete_job(id):
 
     try:
 
-        cursor = db.cursor()
+        job = Job.query.get(id)
 
-        query = '''
-        DELETE FROM jobs
-        WHERE id = %s
-        '''
+        if not job:
 
-        cursor.execute(query, (id,))
+            return jsonify({
+                "message":
+                "Job Not Found"
+            })
 
-        db.commit()
+        db.session.delete(job)
+
+        db.session.commit()
 
         return jsonify({
             "message":
@@ -349,6 +357,13 @@ def delete_job(id):
         return jsonify({
             "message": str(e)
         })
+
+# -----------------------------
+# CREATE DATABASE TABLES
+# -----------------------------
+
+with app.app_context():
+    db.create_all()
 
 # -----------------------------
 # RUN APP
