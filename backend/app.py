@@ -1,54 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-<<<<<<< HEAD
-import psycopg2
-=======
 from flask_sqlalchemy import SQLAlchemy
->>>>>>> mysql-local
 import requests
 import os
 
 app = Flask(__name__)
+
 CORS(app)
 
-<<<<<<< HEAD
-# PostgreSQL Connection
-db = psycopg2.connect(
-    host="dpg-d86ojd9kh4rs73eu1o0g-a.ohio-postgres.render.com",
-    database="jobportal_1z0h",
-    user="jobportal_user",
-    password="TWpyrWdQLPvo3xwmRjj3Dkm68ZRBsOYL",
-    port="5432"
-)
-
-cursor = db.cursor()
-
-# CREATE TABLES AUTOMATICALLY
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    password VARCHAR(100),
-    role VARCHAR(20)
-)
-""")
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS jobs (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(200),
-    company VARCHAR(200),
-    location VARCHAR(200),
-    salary VARCHAR(100),
-    description TEXT
-)
-""")
-
-db.commit()
-
-=======
 # -----------------------------
 # DATABASE CONFIGURATION
 # -----------------------------
@@ -130,8 +89,8 @@ class Job(db.Model):
     )
 
 # -----------------------------
->>>>>>> mysql-local
 # HOME ROUTE
+# -----------------------------
 
 @app.route('/')
 def home():
@@ -140,7 +99,9 @@ def home():
         "message": "Job Portal Backend Running"
     })
 
+# -----------------------------
 # EXTERNAL JOBS API
+# -----------------------------
 
 @app.route('/external-jobs', methods=['GET'])
 def external_jobs():
@@ -161,7 +122,9 @@ def external_jobs():
             "message": str(e)
         })
 
+# -----------------------------
 # REGISTER API
+# -----------------------------
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -170,26 +133,8 @@ def register():
 
         data = request.json
 
-        name = data['name']
-        email = data['email']
-        password = data['password']
-        role = data['role']
-
-<<<<<<< HEAD
-        query = """
-        INSERT INTO users
-        (name, email, password, role)
-        VALUES (%s, %s, %s, %s)
-        """
-
-        values = (
-            name,
-            email,
-            password,
-            role
-=======
         existing_user = User.query.filter_by(
-            email=email
+            email=data['email']
         ).first()
 
         if existing_user:
@@ -199,11 +144,10 @@ def register():
             })
 
         new_user = User(
-            name=name,
-            email=email,
-            password=password,
-            role=role
->>>>>>> mysql-local
+            name=data['name'],
+            email=data['email'],
+            password=data['password'],
+            role=data['role']
         )
 
         db.session.add(new_user)
@@ -221,7 +165,9 @@ def register():
             "message": str(e)
         })
 
+# -----------------------------
 # LOGIN API
+# -----------------------------
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -230,40 +176,14 @@ def login():
 
         data = request.json
 
-        email = data['email']
-        password = data['password']
-
-<<<<<<< HEAD
-        query = """
-        SELECT * FROM users
-        WHERE email=%s AND password=%s
-        """
-
-        values = (
-            email,
-            password
-        )
-
-        cursor.execute(query, values)
-
-        user = cursor.fetchone()
-=======
         user = User.query.filter_by(
-            email=email,
-            password=password
+            email=data['email'],
+            password=data['password']
         ).first()
->>>>>>> mysql-local
 
         if user:
 
             return jsonify({
-<<<<<<< HEAD
-                "message": "Login Successful",
-                "id": user[0],
-                "name": user[1],
-                "email": user[2],
-                "role": user[4]
-=======
 
                 "message":
                 "Login Successful",
@@ -275,7 +195,6 @@ def login():
                 "email": user.email,
 
                 "role": user.role
->>>>>>> mysql-local
             })
 
         else:
@@ -291,7 +210,9 @@ def login():
             "message": str(e)
         })
 
+# -----------------------------
 # ADD JOB API
+# -----------------------------
 
 @app.route('/add-job', methods=['POST'])
 def add_job():
@@ -302,13 +223,6 @@ def add_job():
 
         new_job = Job(
 
-<<<<<<< HEAD
-        query = """
-        INSERT INTO jobs
-        (title, company, location, salary, description)
-        VALUES (%s, %s, %s, %s, %s)
-        """
-=======
             title=data['title'],
             company=data['company'],
             location=data['location'],
@@ -317,7 +231,6 @@ def add_job():
         )
 
         db.session.add(new_job)
->>>>>>> mysql-local
 
         db.session.commit()
 
@@ -332,45 +245,29 @@ def add_job():
             "message": str(e)
         })
 
+# -----------------------------
 # GET JOBS API
+# -----------------------------
 
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
 
     try:
 
-<<<<<<< HEAD
-        query = "SELECT * FROM jobs"
-=======
         jobs = Job.query.all()
 
         jobs_list = []
->>>>>>> mysql-local
 
         for job in jobs:
 
             jobs_list.append({
 
-<<<<<<< HEAD
-        jobs_list = []
-
-        for job in jobs:
-
-            jobs_list.append({
-                "id": job[0],
-                "title": job[1],
-                "company": job[2],
-                "location": job[3],
-                "salary": job[4],
-                "description": job[5]
-=======
                 "id": job.id,
                 "title": job.title,
                 "company": job.company,
                 "location": job.location,
                 "salary": job.salary,
                 "description": job.description
->>>>>>> mysql-local
             })
 
         return jsonify(jobs_list)
@@ -381,7 +278,9 @@ def get_jobs():
             "message": str(e)
         })
 
+# -----------------------------
 # UPDATE JOB API
+# -----------------------------
 
 @app.route('/job/<int:id>', methods=['PUT'])
 def update_job(id):
@@ -392,31 +291,6 @@ def update_job(id):
 
         job = Job.query.get(id)
 
-<<<<<<< HEAD
-        query = """
-        UPDATE jobs
-        SET
-            title=%s,
-            company=%s,
-            location=%s,
-            salary=%s,
-            description=%s
-        WHERE id=%s
-        """
-
-        values = (
-            title,
-            company,
-            location,
-            salary,
-            description,
-            id
-        )
-
-        cursor.execute(query, values)
-
-        db.commit()
-=======
         if not job:
 
             return jsonify({
@@ -431,7 +305,6 @@ def update_job(id):
         job.description = data['description']
 
         db.session.commit()
->>>>>>> mysql-local
 
         return jsonify({
             "message":
@@ -444,24 +317,18 @@ def update_job(id):
             "message": str(e)
         })
 
-# DELETE JOB API
-<<<<<<< HEAD
-=======
 # -----------------------------
->>>>>>> mysql-local
+# DELETE JOB API
+# -----------------------------
 
 @app.route('/job/<int:id>', methods=['DELETE'])
 def delete_job(id):
 
     try:
 
-<<<<<<< HEAD
-        query = "DELETE FROM jobs WHERE id=%s"
-=======
         job = Job.query.get(id)
 
         if not job:
->>>>>>> mysql-local
 
             return jsonify({
                 "message":
@@ -483,9 +350,6 @@ def delete_job(id):
             "message": str(e)
         })
 
-<<<<<<< HEAD
-if __name__ == '__main__':
-=======
 # -----------------------------
 # CREATE DATABASE TABLES
 # -----------------------------
@@ -496,6 +360,6 @@ with app.app_context():
 # -----------------------------
 # RUN APP
 # -----------------------------
->>>>>>> mysql-local
 
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
