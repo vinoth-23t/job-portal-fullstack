@@ -11,6 +11,9 @@ import "./Register.css";
 
 import Navbar from "../components/Navbar";
 
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
 function Register() {
 
   const navigate = useNavigate();
@@ -42,7 +45,7 @@ function Register() {
 
       const response = await axios.post(
 
-        "https://job-portal-backend-czgj.onrender.com/register",
+        `${API}/register`,
 
         user
       );

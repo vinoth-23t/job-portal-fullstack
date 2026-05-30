@@ -2,6 +2,9 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import "./AddJob.css";
 
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
 function ApplyJob() {
 
   // Logged User
@@ -43,15 +46,27 @@ function ApplyJob() {
   }
 
   // Handle Submit
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
 
     e.preventDefault();
 
-    alert(
-      "Application Submitted Successfully"
-    );
+    try {
 
-    setResume("");
+      // Future backend API call
+      // await fetch(`${API}/apply-job`, { ... })
+
+      alert(
+        "Application Submitted Successfully"
+      );
+
+      setResume("");
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert("Failed To Apply");
+    }
   };
 
   return (

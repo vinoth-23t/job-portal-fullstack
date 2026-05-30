@@ -11,6 +11,9 @@ import Navbar from "../components/Navbar";
 
 import "./Login.css";
 
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
 function Login() {
 
   const navigate = useNavigate();
@@ -42,7 +45,7 @@ function Login() {
       const response =
       await axios.post(
 
-        "https://job-portal-backend-czgj.onrender.com/login",
+        `${API}/login`,
 
         user
       );

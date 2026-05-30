@@ -3,6 +3,9 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AdminDashboard.css";
 
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
 function AdminDashboard() {
 
   // Logged User
@@ -24,7 +27,7 @@ function AdminDashboard() {
     try {
 
       const response = await axios.get(
-        "http://127.0.0.1:5000/jobs"
+        `${API}/jobs`
       );
 
       setJobs(response.data);
@@ -32,6 +35,8 @@ function AdminDashboard() {
     } catch (error) {
 
       console.log(error);
+
+      alert("Failed to Fetch Jobs");
     }
   };
 
@@ -60,7 +65,7 @@ function AdminDashboard() {
     try {
 
       await axios.delete(
-        `http://127.0.0.1:5000/job/${id}`
+        `${API}/job/${id}`
       );
 
       alert("Job Deleted Successfully");

@@ -4,6 +4,9 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./Jobs.css";
 
+// Backend API URL
+const API = import.meta.env.VITE_API_URL;
+
 function Jobs() {
 
   const navigate = useNavigate();
@@ -55,7 +58,7 @@ function Jobs() {
     try {
 
       const response = await axios.get(
-        "https://job-portal-backend-czgj.onrender.com/jobs"
+        `${API}/jobs`
       );
 
       setJobs(response.data);
@@ -63,6 +66,8 @@ function Jobs() {
     } catch (error) {
 
       console.log(error);
+
+      alert("Failed To Fetch Jobs");
     }
   };
 
@@ -72,7 +77,7 @@ function Jobs() {
     try {
 
       const response = await axios.get(
-        "https://job-portal-backend-czgj.onrender.com/external-jobs"
+        `${API}/external-jobs`
       );
 
       setExternalJobs(response.data);
@@ -80,6 +85,8 @@ function Jobs() {
     } catch (error) {
 
       console.log(error);
+
+      alert("Failed To Fetch External Jobs");
     }
   };
 
@@ -208,7 +215,8 @@ function Jobs() {
         </div>
 
       </div>
-       {/* FOOTER */}
+
+      {/* FOOTER */}
 
       <footer className="jobs-footer">
 
