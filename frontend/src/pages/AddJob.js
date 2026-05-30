@@ -15,6 +15,9 @@ function ApplyJob() {
   const [resume, setResume] =
     useState("");
 
+  // Loading State
+  const [isLoading, setIsLoading] = useState(false);
+
   // Candidate Only
   if (!user) {
 
@@ -50,22 +53,43 @@ function ApplyJob() {
 
     e.preventDefault();
 
+    if (!resume.trim()) {
+      alert("Please enter a resume link");
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
 
-      // Future backend API call
-      // await fetch(`${API}/apply-job`, { ... })
+      const response = await fetch(`${API}/apply-job`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          resume: resume
+        })
+      });
 
-      alert(
-        "Application Submitted Successfully"
-      );
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      alert(data.message || "Application Submitted Successfully");
 
       setResume("");
 
     } catch (error) {
 
-      console.log(error);
+      console.error("Apply Job Error:", error);
 
-      alert("Failed To Apply");
+      alert("Failed To Apply. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,8 +115,8 @@ function ApplyJob() {
               required
             />
 
-            <button type="submit">
-              Submit Application
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Submitting..." : "Submit Application"}
             </button>
 
           </form>
