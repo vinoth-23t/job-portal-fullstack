@@ -21,23 +21,6 @@ function AddJob() {
     description: ""
   });
 
-<<<<<<< HEAD
-  // Loading State
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Candidate Only
-  if (!user) {
-
-    return (
-      <>
-        <Navbar />
-        <h1>Please Login</h1>
-      </>
-    );
-  }
-
-  if (user.role !== "candidate") {
-=======
   // Restrict Access
   if (
     !user ||
@@ -46,7 +29,6 @@ function AddJob() {
       user.role !== "recruiter"
     )
   ) {
->>>>>>> e3dcf63 (Fix API call for job application)
 
     return (
       <>
@@ -81,40 +63,12 @@ function AddJob() {
 
     e.preventDefault();
 
-    if (!resume.trim()) {
-      alert("Please enter a resume link");
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
 
-<<<<<<< HEAD
-      const response = await fetch(`${API}/apply-job`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          resume: resume
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      alert(data.message || "Application Submitted Successfully");
-=======
       const response = await axios.post(
         `${API}/add-job`,
         job
       );
->>>>>>> e3dcf63 (Fix API call for job application)
 
       alert(response.data.message);
 
@@ -128,15 +82,9 @@ function AddJob() {
 
     } catch (error) {
 
-      console.error("Apply Job Error:", error);
+      console.log(error);
 
-<<<<<<< HEAD
-      alert("Failed To Apply. Please try again.");
-    } finally {
-      setIsLoading(false);
-=======
       alert("Failed to Add Job");
->>>>>>> e3dcf63 (Fix API call for job application)
     }
   };
 
@@ -161,10 +109,6 @@ function AddJob() {
               required
             />
 
-<<<<<<< HEAD
-            <button type="submit" disabled={isLoading}>
-              {isLoading ? "Submitting..." : "Submit Application"}
-=======
             <input
               type="text"
               name="company"
@@ -202,7 +146,6 @@ function AddJob() {
 
             <button type="submit">
               Add Job
->>>>>>> e3dcf63 (Fix API call for job application)
             </button>
 
           </form>
@@ -214,8 +157,4 @@ function AddJob() {
   );
 }
 
-<<<<<<< HEAD
-export default ApplyJob;
-=======
 export default AddJob;
->>>>>>> e3dcf63 (Fix API call for job application)

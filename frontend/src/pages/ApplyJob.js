@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import "./AddJob.css";
 
 // Backend API URL
-const API = import.meta.env.VITE_API_URL;
+/* const API = import.meta.env.VITE_API_URL; */
 
 function ApplyJob() {
 
