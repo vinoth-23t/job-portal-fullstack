@@ -12,13 +12,17 @@ function Jobs() {
   const navigate = useNavigate();
 
   // Logged User
-  const user =
-    JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
 
   // State
   const [jobs, setJobs] = useState([]);
   const [externalJobs, setExternalJobs] =
     useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
 
   // Load Jobs
   useEffect(() => {
@@ -61,13 +65,50 @@ function Jobs() {
         `${API}/jobs`
       );
 
-      setJobs(response.data);
+      console.log(
+        "Portal Jobs API:",
+        response.data
+      );
+
+      // SAFE ARRAY CHECK
+
+      if (
+        Array.isArray(response.data)
+      ) {
+
+        setJobs(response.data);
+
+      } else if (
+        Array.isArray(
+          response.data.jobs
+        )
+      ) {
+
+        setJobs(
+          response.data.jobs
+        );
+
+      } else {
+
+        setJobs([]);
+      }
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "Portal Jobs Error:",
+        error
+      );
 
-      alert("Failed To Fetch Jobs");
+      setJobs([]);
+
+      alert(
+        "Failed To Fetch Portal Jobs"
+      );
+
+    } finally {
+
+      setLoading(false);
     }
   };
 
@@ -80,13 +121,48 @@ function Jobs() {
         `${API}/external-jobs`
       );
 
-      setExternalJobs(response.data);
+      console.log(
+        "External Jobs API:",
+        response.data
+      );
+
+      // SAFE ARRAY CHECK
+
+      if (
+        Array.isArray(response.data)
+      ) {
+
+        setExternalJobs(
+          response.data
+        );
+
+      } else if (
+        Array.isArray(
+          response.data.jobs
+        )
+      ) {
+
+        setExternalJobs(
+          response.data.jobs
+        );
+
+      } else {
+
+        setExternalJobs([]);
+      }
 
     } catch (error) {
 
-      console.log(error);
+      console.log(
+        "External Jobs Error:",
+        error
+      );
 
-      alert("Failed To Fetch External Jobs");
+      setExternalJobs([]);
+
+      alert(
+        "Failed To Fetch External Jobs"
+      );
     }
   };
 
@@ -98,13 +174,18 @@ function Jobs() {
 
         <h1>Available Jobs</h1>
 
+        {loading && (
+          <p>Loading Jobs...</p>
+        )}
+
         {/* Portal Jobs */}
 
         <h2>Portal Jobs</h2>
 
         <div className="jobs-grid">
 
-          {jobs.length > 0 ? (
+          {Array.isArray(jobs) &&
+          jobs.length > 0 ? (
 
             jobs.map((job) => (
 
@@ -115,20 +196,28 @@ function Jobs() {
 
                 <div>
 
-                  <h3>{job.title}</h3>
+                  <h3>
+                    {job.title}
+                  </h3>
 
                   <p>
-                    <strong>Company:</strong>{" "}
+                    <strong>
+                      Company:
+                    </strong>{" "}
                     {job.company}
                   </p>
 
                   <p>
-                    <strong>Location:</strong>{" "}
+                    <strong>
+                      Location:
+                    </strong>{" "}
                     {job.location}
                   </p>
 
                   <p>
-                    <strong>Salary:</strong>{" "}
+                    <strong>
+                      Salary:
+                    </strong>{" "}
                     {job.salary}
                   </p>
 
@@ -140,7 +229,9 @@ function Jobs() {
 
                 <button
                   className="apply-btn"
-                  onClick={handleApply}
+                  onClick={
+                    handleApply
+                  }
                 >
                   Apply Now
                 </button>
@@ -151,7 +242,9 @@ function Jobs() {
 
           ) : (
 
-            <p>No Portal Jobs Available</p>
+            <p>
+              No Portal Jobs Available
+            </p>
 
           )}
 
@@ -163,41 +256,62 @@ function Jobs() {
 
         <div className="jobs-grid">
 
-          {externalJobs.length > 0 ? (
+          {Array.isArray(
+            externalJobs
+          ) &&
+          externalJobs.length >
+            0 ? (
 
             externalJobs
               .slice(0, 20)
-              .map((job) => (
+              .map((job, index) => (
 
                 <div
                   className="job-card"
-                  key={job.id}
+                  key={
+                    job.id ||
+                    index
+                  }
                 >
 
                   <div>
 
-                    <h3>{job.title}</h3>
+                    <h3>
+                      {job.title}
+                    </h3>
 
                     <p>
-                      <strong>Company:</strong>{" "}
-                      {job.company_name}
+                      <strong>
+                        Company:
+                      </strong>{" "}
+                      {
+                        job.company_name
+                      }
                     </p>
 
                     <p>
-                      <strong>Category:</strong>{" "}
+                      <strong>
+                        Category:
+                      </strong>{" "}
                       {job.category}
                     </p>
 
                     <p>
-                      <strong>Location:</strong>{" "}
-                      {job.candidate_required_location}
+                      <strong>
+                        Location:
+                      </strong>{" "}
+                      {
+                        job.candidate_required_location
+                      }
                     </p>
 
                   </div>
 
                   <button
                     className="apply-btn"
-                    onClick={handleApply}
+                    onClick={
+                      handleApply
+                    }
                   >
                     Apply Now
                   </button>
@@ -208,7 +322,9 @@ function Jobs() {
 
           ) : (
 
-            <p>No External Jobs Available</p>
+            <p>
+              No External Jobs Available
+            </p>
 
           )}
 
@@ -223,8 +339,8 @@ function Jobs() {
         <h2>JobPortal</h2>
 
         <p>
-          Explore opportunities and build
-          your career with us.
+          Explore opportunities and
+          build your career with us.
         </p>
 
         <p>
