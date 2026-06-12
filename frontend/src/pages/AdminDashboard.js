@@ -3,212 +3,168 @@ import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AdminDashboard.css";
 
-// Backend API URL
 const API = process.env.REACT_APP_API_URL || "https://job-portal-backend-czgj.onrender.com";
 
 function AdminDashboard() {
-
-  // Logged User
-  const user =
-    JSON.parse(localStorage.getItem("user"));
-
-  // State
+  const user = JSON.parse(localStorage.getItem("user"));
   const [jobs, setJobs] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  // Fetch Jobs
   useEffect(() => {
-
     fetchJobs();
-
+    if (user && user.role === "admin") {
+      fetchUsers();
+    }
   }, []);
 
   const fetchJobs = async () => {
-
     try {
-
-      const response = await axios.get(
-        `${API}/jobs`
-      );
-
+      const response = await axios.get(`${API}/jobs`);
       setJobs(response.data);
-
     } catch (error) {
-
-      console.log(error);
-
       alert("Failed to Fetch Jobs");
     }
   };
 
-  // Restrict Access
-  if (!user) {
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API}/users`);
+      setUsers(response.data);
+    } catch (error) {
+      alert("Failed to Fetch Users");
+    }
+  };
 
+  if (!user) {
     return <h1>Please Login</h1>;
   }
 
-  // Delete Job
   const deleteJob = async (id) => {
-
     if (user.role === "candidate") {
-
       alert("Access Denied");
-
       return;
     }
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this job?"
-    );
-
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Are you sure you want to delete this job?")) return;
     try {
-
-      await axios.delete(
-        `${API}/job/${id}`
-      );
-
+      await axios.delete(`${API}/job/${id}`);
       alert("Job Deleted Successfully");
-
       fetchJobs();
-
     } catch (error) {
-
-      console.log(error);
-
       alert("Failed to Delete Job");
+    }
+  };
+
+  const deleteUser = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await axios.delete(`${API}/user/${id}`);
+      alert("User Deleted Successfully");
+      fetchUsers();
+    } catch (error) {
+      alert("Failed to Delete User");
     }
   };
 
   return (
     <>
       <Navbar />
-
       <div className="dashboard-container">
-
         <h1>
-
           {user.role === "admin"
             ? "Admin Dashboard"
-            : user.role === "recruiter"
-            ? "Recruiter Dashboard"
-            : "User Dashboard"}
-
+            : "Recruiter Dashboard"}
         </h1>
 
         <div className="dashboard-stats">
-
           <div className="dashboard-card">
-
             <h2>Total Jobs</h2>
-
             <p>{jobs.length}</p>
-
           </div>
-
+          {user.role === "admin" && (
+            <div className="dashboard-card">
+              <h2>Total Users</h2>
+              <p>{users.length}</p>
+            </div>
+          )}
           <div className="dashboard-card">
-
-            <h2>Total Applicants</h2>
-
-            <p>120</p>
-
-          </div>
-
-          <div className="dashboard-card">
-
             <h2>Logged User</h2>
-
             <p>{user.name}</p>
-
           </div>
-
         </div>
 
         <div className="jobs-section">
-
           <h2>Posted Jobs</h2>
-
           <table>
-
             <thead>
-
               <tr>
-
                 <th>Title</th>
-
                 <th>Company</th>
-
                 <th>Location</th>
-
                 <th>Salary</th>
-
-                {(user.role === "admin" ||
-                  user.role === "recruiter") && (
-                  <th>Action</th>
-                )}
-
+                <th>Action</th>
               </tr>
-
             </thead>
-
             <tbody>
-
               {jobs.length > 0 ? (
-
                 jobs.map((job) => (
-
                   <tr key={job.id}>
-
                     <td>{job.title}</td>
-
                     <td>{job.company}</td>
-
                     <td>{job.location}</td>
-
                     <td>{job.salary}</td>
-
-                    {(user.role === "admin" ||
-                      user.role === "recruiter") && (
-
-                      <td>
-
-                        <button
-                          className="delete-btn"
-                          onClick={() =>
-                            deleteJob(job.id)
-                          }
-                        >
-                          Delete
-                        </button>
-
-                      </td>
-
-                    )}
-
+                    <td>
+                      <button className="delete-btn" onClick={() => deleteJob(job.id)}>
+                        Delete
+                      </button>
+                    </td>
                   </tr>
-
                 ))
-
               ) : (
-
                 <tr>
-
-                  <td colSpan="5">
-
-                    No Jobs Available
-
-                  </td>
-
+                  <td colSpan="5">No Jobs Available</td>
                 </tr>
-
               )}
-
             </tbody>
-
           </table>
-
         </div>
 
+        {user.role === "admin" && (
+          <div className="jobs-section">
+            <h2>Manage Users</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length > 0 ? (
+                  users.map((u) => (
+                    <tr key={u.id}>
+                      <td>{u.name}</td>
+                      <td>{u.email}</td>
+                      <td>{u.role}</td>
+                      <td>
+                        {u.role !== "admin" && (
+                          <button className="delete-btn" onClick={() => deleteUser(u.id)}>
+                            Delete
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4">No Users Found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </>
   );
