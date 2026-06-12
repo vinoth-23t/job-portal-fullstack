@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import "./AddJob.css";
 
 // Backend API URL
-const API = import.meta.env.VITE_API_URL;
+const API = process.env.REACT_APP_API_URL || "https://job-portal-backend-czgj.onrender.com";
 
 function AddJob() {
 
