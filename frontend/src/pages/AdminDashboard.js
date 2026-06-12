@@ -9,18 +9,17 @@ function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const [jobs, setJobs] = useState([]);
   const [users, setUsers] = useState([]);
+  const [applications, setApplications] = useState({});
 
   useEffect(() => {
     fetchJobs();
-    if (user && user.role === "admin") {
-      fetchUsers();
-    }
+    if (user && user.role === "admin") fetchUsers();
   }, []);
 
   const fetchJobs = async () => {
     try {
       const response = await axios.get(`${API}/jobs`);
-      setJobs(response.data);
+      setJobs(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       alert("Failed to Fetch Jobs");
     }
@@ -29,33 +28,38 @@ function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API}/users`);
-      setUsers(response.data);
+      setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       alert("Failed to Fetch Users");
     }
   };
 
-  if (!user) {
-    return <h1>Please Login</h1>;
-  }
+  const viewApplicants = async (jobId) => {
+    try {
+      const response = await axios.get(`${API}/job-applications/${jobId}`);
+      setApplications({ ...applications, [jobId]: response.data });
+    } catch (error) {
+      alert("Failed to Fetch Applicants");
+    }
+  };
+
+  if (!user) return <h1>Please Login</h1>;
 
   const deleteJob = async (id) => {
-    if (user.role === "candidate") {
-      alert("Access Denied");
-      return;
-    }
-    if (!window.confirm("Are you sure you want to delete this job?")) return;
+    if (!window.confirm("Delete this job?")) return;
     try {
-      await axios.delete(`${API}/job/${id}`);
+      await axios.delete(`${API}/job/${id}`, {
+        data: { role: user.role, user_id: user.id }
+      });
       alert("Job Deleted Successfully");
       fetchJobs();
     } catch (error) {
-      alert("Failed to Delete Job");
+      alert(error.response?.data?.message || "Failed to Delete Job");
     }
   };
 
   const deleteUser = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    if (!window.confirm("Delete this user?")) return;
     try {
       await axios.delete(`${API}/user/${id}`);
       alert("User Deleted Successfully");
@@ -69,11 +73,7 @@ function AdminDashboard() {
     <>
       <Navbar />
       <div className="dashboard-container">
-        <h1>
-          {user.role === "admin"
-            ? "Admin Dashboard"
-            : "Recruiter Dashboard"}
-        </h1>
+        <h1>{user.role === "admin" ? "Admin Dashboard" : "Recruiter Dashboard"}</h1>
 
         <div className="dashboard-stats">
           <div className="dashboard-card">
@@ -101,28 +101,44 @@ function AdminDashboard() {
                 <th>Company</th>
                 <th>Location</th>
                 <th>Salary</th>
+                <th>Applicants</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {jobs.length > 0 ? (
                 jobs.map((job) => (
-                  <tr key={job.id}>
-                    <td>{job.title}</td>
-                    <td>{job.company}</td>
-                    <td>{job.location}</td>
-                    <td>{job.salary}</td>
-                    <td>
-                      <button className="delete-btn" onClick={() => deleteJob(job.id)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+                  <>
+                    <tr key={job.id}>
+                      <td>{job.title}</td>
+                      <td>{job.company}</td>
+                      <td>{job.location}</td>
+                      <td>{job.salary}</td>
+                      <td>
+                        <button className="view-btn" onClick={() => viewApplicants(job.id)}>
+                          View
+                        </button>
+                      </td>
+                      <td>
+                        {(user.role === "admin" || job.posted_by === user.id) && (
+                          <button className="delete-btn" onClick={() => deleteJob(job.id)}>
+                            Delete
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {applications[job.id] && applications[job.id].length > 0 && (
+                      <tr key={`apps-${job.id}`}>
+                        <td colSpan="6">
+                          <strong>Applicants:</strong>{" "}
+                          {applications[job.id].map((a) => `${a.applicant.name} (${a.applicant.email})`).join(", ")}
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))
               ) : (
-                <tr>
-                  <td colSpan="5">No Jobs Available</td>
-                </tr>
+                <tr><td colSpan="6">No Jobs Available</td></tr>
               )}
             </tbody>
           </table>
@@ -149,17 +165,13 @@ function AdminDashboard() {
                       <td>{u.role}</td>
                       <td>
                         {u.role !== "admin" && (
-                          <button className="delete-btn" onClick={() => deleteUser(u.id)}>
-                            Delete
-                          </button>
+                          <button className="delete-btn" onClick={() => deleteUser(u.id)}>Delete</button>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="4">No Users Found</td>
-                  </tr>
+                  <tr><td colSpan="4">No Users Found</td></tr>
                 )}
               </tbody>
             </table>
