@@ -449,6 +449,42 @@ def delete_job(id):
         }), 500
 
 # -----------------------------------
+# GET ALL USERS API (Admin Only)
+# -----------------------------------
+
+@app.route("/users", methods=["GET"])
+def get_users():
+    """Retrieve all users. Admin only."""
+    try:
+        users = User.query.all()
+        return jsonify([{
+            "id": u.id,
+            "name": u.name,
+            "email": u.email,
+            "role": u.role
+        } for u in users]), 200
+    except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+# -----------------------------------
+# DELETE USER API (Admin Only)
+# -----------------------------------
+
+@app.route("/user/<int:id>", methods=["DELETE"])
+def delete_user(id):
+    """Delete a user by ID. Admin only."""
+    try:
+        user = User.query.get(id)
+        if not user:
+            return jsonify({"message": "User Not Found"}), 404
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": "User Deleted Successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
+
+# -----------------------------------
 # CREATE DATABASE TABLES
 # -----------------------------------
 
