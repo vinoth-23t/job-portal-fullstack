@@ -112,6 +112,9 @@ function Jobs() {
                   <p><strong>Category:</strong> {job.category}</p>
                   <p><strong>Location:</strong> {job.candidate_required_location}</p>
                 </div>
+                <a href={job.url} target="_blank" rel="noreferrer" className="apply-btn">
+                  Apply Now
+                </a>
               </div>
             ))
           ) : (
