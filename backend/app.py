@@ -10,18 +10,42 @@ app = Flask(__name__)
 # CORS CONFIGURATION
 # -----------------------------------
 
-CORS(
-    app,
-    origins=[
-        "https://job-portal-fullstack-zeta.vercel.app"
+DEFAULT_ORIGINS = [
+    "https://job-portal-fullstack-zeta.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+]
+
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS")
+
+if ALLOWED_ORIGINS:
+    origins = [
+        o.strip()
+        for o in ALLOWED_ORIGINS.split(",")
+        if o.strip()
     ]
-)
+else:
+    origins = DEFAULT_ORIGINS
+
+CORS(app, origins=origins)
 
 # -----------------------------------
 # DATABASE CONFIGURATION
 # -----------------------------------
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# SQLAlchemy 2.0 requires the "postgresql://" scheme, but managed
+# hosts (Render/Heroku) hand out "postgres://", which crashes on boot.
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://", "postgresql://", 1
+    )
+
+# Fall back to a local SQLite file so the app still boots without
+# a configured database (local dev / misconfigured deploy).
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///job_portal.db"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False

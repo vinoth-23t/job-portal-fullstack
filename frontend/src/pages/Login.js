@@ -57,11 +57,11 @@ function Login() {
 
         localStorage.setItem(
           "user",
-          JSON.stringify(response.data)
+          JSON.stringify(response.data.user)
         );
 
         if (
-          response.data.role ===
+          response.data.user.role ===
           "admin"
         ) {
 
@@ -69,7 +69,7 @@ function Login() {
 
         } else if (
 
-          response.data.role ===
+          response.data.user.role ===
           "recruiter"
 
         ) {
