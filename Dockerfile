@@ -3,7 +3,7 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ ./
-ENV REACT_APP_API_URL=""
+ENV REACT_APP_API_URL="https://job-portal-fullstack-1-2ms0.onrender.com"
 RUN npm run build
 
 FROM python:3.11-slim
