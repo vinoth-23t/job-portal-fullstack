@@ -1,90 +1,46 @@
-import {
-  NavLink,
-  useNavigate
-} from "react-router-dom";
-
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 
 function Navbar() {
-
   const navigate = useNavigate();
-
-  const user =
-    JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const logout = () => {
-
     localStorage.removeItem("user");
-
     navigate("/login");
   };
 
   return (
-
     <nav className="navbar">
-
-      <h1 className="logo">
-        JobPortal
-      </h1>
-
+      <h1 className="logo">JobPortal</h1>
       <div className="nav-links">
+        <NavLink to="/">Home</NavLink>
+        <NavLink to="/jobs">Jobs</NavLink>
 
-        <NavLink to="/">
-          Home
-        </NavLink>
-
-        <NavLink to="/jobs">
-          Jobs
-        </NavLink>
-
-        {user &&
-        (
-          user.role === "admin" ||
-          user.role === "recruiter"
-        ) && (
-
-          <NavLink to="/add-job">
-            Add Job
-          </NavLink>
+        {user && (user.role === "admin" || user.role === "recruiter") && (
+          <NavLink to="/add-job">Add Job</NavLink>
         )}
 
-        {user && (
+        {user && (user.role === "admin" || user.role === "recruiter") && (
+          <NavLink to="/admin">Dashboard</NavLink>
+        )}
 
-          <NavLink to="/admin">
-            Dashboard
-          </NavLink>
+        {user && user.role === "candidate" && (
+          <NavLink to="/my-applications">My Applications</NavLink>
         )}
 
         {!user ? (
-
           <>
-            <NavLink to="/login">
-              Login
-            </NavLink>
-
-            <NavLink to="/register">
-              Register
-            </NavLink>
+            <NavLink to="/login">Login</NavLink>
+            <NavLink to="/register">Register</NavLink>
           </>
-
         ) : (
-
           <>
-            <span className="username">
-              {user.name}
-            </span>
-
-            <button
-              className="logout-btn"
-              onClick={logout}
-            >
-              Logout
-            </button>
+            <NavLink to="/profile">{user.name}</NavLink>
+            <button className="logout-btn" onClick={logout}>Logout</button>
           </>
         )}
-
       </div>
-
     </nav>
   );
 }
