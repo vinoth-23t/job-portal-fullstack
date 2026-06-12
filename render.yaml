@@ -8,7 +8,6 @@ services:
   - type: web
     name: job-portal-backend
     runtime: python
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
@@ -23,7 +22,6 @@ services:
   - type: web
     name: job-portal-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: build
