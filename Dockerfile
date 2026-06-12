@@ -25,7 +25,7 @@ server {
     location / {
         try_files \$uri /index.html;
     }
-    location ~ ^/(register|login|jobs|job|add-job|external-jobs|users|user) {
+    location ~ ^/(register|login|jobs|job|add-job|external-jobs|users|user|apply|my-applications|job-applications|profile) {
         proxy_pass http://127.0.0.1:5000;
         proxy_set_header Host \$host;
     }

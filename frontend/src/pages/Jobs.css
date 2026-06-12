@@ -137,3 +137,25 @@
 .job-card {
   min-height: 340px;
 }
+
+.search-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+.search-form input {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 300px;
+  font-size: 14px;
+}
+.search-form button {
+  padding: 10px 20px;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
