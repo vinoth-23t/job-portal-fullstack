@@ -1,3 +1,9 @@
+"""Job Portal Backend API.
+
+A Flask REST API providing authentication, job management,
+and external job listing integration for the Job Portal application.
+"""
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -13,7 +19,9 @@ app = Flask(__name__)
 CORS(
     app,
     origins=[
-        "https://job-portal-fullstack-zeta.vercel.app"
+        "https://job-portal-fullstack-zeta.vercel.app",
+        "https://job-portal-frontend.onrender.com",
+        os.getenv("FRONTEND_URL", "http://localhost:3000")
     ]
 )
 
@@ -33,6 +41,7 @@ db = SQLAlchemy(app)
 # -----------------------------------
 
 class User(db.Model):
+    """User model representing registered portal users."""
 
     __tablename__ = "users"
 
@@ -67,6 +76,7 @@ class User(db.Model):
 # -----------------------------------
 
 class Job(db.Model):
+    """Job model representing job listings posted by recruiters."""
 
     __tablename__ = "jobs"
 
@@ -106,6 +116,7 @@ class Job(db.Model):
 
 @app.route("/", methods=["GET"])
 def home():
+    """Health check endpoint. Returns API running status."""
 
     return jsonify({
         "message": "Job Portal Backend Running"
@@ -120,6 +131,7 @@ def home():
     methods=["GET"]
 )
 def external_jobs():
+    """Fetch remote job listings from the Remotive API."""
 
     try:
 
@@ -151,6 +163,7 @@ def external_jobs():
     methods=["POST"]
 )
 def register():
+    """Register a new user with name, email, password, and role."""
 
     try:
 
@@ -224,6 +237,7 @@ def register():
     methods=["POST"]
 )
 def login():
+    """Authenticate a user by email and password."""
 
     try:
 
@@ -281,6 +295,7 @@ def login():
     methods=["POST"]
 )
 def add_job():
+    """Create a new job listing."""
 
     try:
 
@@ -321,6 +336,7 @@ def add_job():
     methods=["GET"]
 )
 def get_jobs():
+    """Retrieve all job listings."""
 
     try:
 
@@ -357,6 +373,7 @@ def get_jobs():
     methods=["PUT"]
 )
 def update_job(id):
+    """Update an existing job listing by ID."""
 
     try:
 
@@ -401,6 +418,7 @@ def update_job(id):
     methods=["DELETE"]
 )
 def delete_job(id):
+    """Delete a job listing by ID."""
 
     try:
 
@@ -436,6 +454,13 @@ def delete_job(id):
 
 with app.app_context():
     db.create_all()
+    if not User.query.first():
+        db.session.add_all([
+            User(name="Admin", email="admin@portal.com", password="admin123", role="admin"),
+            User(name="Recruiter", email="recruiter@portal.com", password="recruiter123", role="recruiter"),
+            User(name="Candidate", email="candidate@portal.com", password="candidate123", role="candidate"),
+        ])
+        db.session.commit()
 
 # -----------------------------------
 # RUN APP
