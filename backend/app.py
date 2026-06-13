@@ -4,13 +4,19 @@ A Flask REST API providing authentication, job management,
 and external job listing integration for the Job Portal application.
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
+from datetime import datetime
 import requests
 import os
 
 app = Flask(__name__)
+
+UPLOAD_FOLDER = "/app/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # -----------------------------------
 # CORS CONFIGURATION
@@ -64,6 +70,8 @@ class Job(db.Model):
     salary = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     posted_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    expires_at = db.Column(db.String(20), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # -----------------------------------
 # APPLICATION MODEL
@@ -76,6 +84,8 @@ class Application(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"), nullable=False)
     status = db.Column(db.String(50), default="Applied")
+    resume = db.Column(db.String(255), nullable=True)
+    applied_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # -----------------------------------
 # HOME ROUTE
@@ -188,7 +198,8 @@ def add_job():
             title=data["title"], company=data["company"],
             location=data["location"], salary=data["salary"],
             description=data["description"],
-            posted_by=data.get("posted_by")
+            posted_by=data.get("posted_by"),
+            expires_at=data.get("expires_at")
         )
         db.session.add(new_job)
         db.session.commit()
@@ -203,11 +214,12 @@ def add_job():
 
 @app.route("/jobs", methods=["GET"])
 def get_jobs():
-    """Retrieve job listings with optional search and pagination."""
+    """Retrieve job listings with search, pagination, and sorting."""
     try:
         query = request.args.get("search", "").strip()
         page = request.args.get("page", 1, type=int)
         per_page = request.args.get("per_page", 10, type=int)
+        sort = request.args.get("sort", "newest")
 
         jobs = Job.query
         if query:
@@ -218,13 +230,24 @@ def get_jobs():
                     Job.location.ilike(f"%{query}%")
                 )
             )
+
+        if sort == "oldest":
+            jobs = jobs.order_by(Job.id.asc())
+        elif sort == "salary_high":
+            jobs = jobs.order_by(Job.salary.desc())
+        elif sort == "salary_low":
+            jobs = jobs.order_by(Job.salary.asc())
+        else:
+            jobs = jobs.order_by(Job.id.desc())
+
         total = jobs.count()
-        jobs = jobs.order_by(Job.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+        jobs = jobs.offset((page - 1) * per_page).limit(per_page).all()
 
         return jsonify({
             "jobs": [{"id": j.id, "title": j.title, "company": j.company,
                       "location": j.location, "salary": j.salary,
-                      "description": j.description, "posted_by": j.posted_by} for j in jobs],
+                      "description": j.description, "posted_by": j.posted_by,
+                      "expires_at": j.expires_at} for j in jobs],
             "total": total,
             "page": page,
             "pages": (total + per_page - 1) // per_page
@@ -246,7 +269,8 @@ def get_job(id):
         return jsonify({
             "id": job.id, "title": job.title, "company": job.company,
             "location": job.location, "salary": job.salary,
-            "description": job.description, "posted_by": job.posted_by
+            "description": job.description, "posted_by": job.posted_by,
+            "expires_at": job.expires_at
         }), 200
     except Exception as e:
         return jsonify({"message": str(e)}), 500
@@ -269,6 +293,7 @@ def update_job(id):
         job.location = data["location"]
         job.salary = data["salary"]
         job.description = data["description"]
+        job.expires_at = data.get("expires_at")
         db.session.commit()
         return jsonify({"message": "Job Updated Successfully"}), 200
     except Exception as e:
@@ -303,26 +328,46 @@ def delete_job(id):
         return jsonify({"message": str(e)}), 500
 
 # -----------------------------------
-# APPLY FOR JOB API
+# APPLY FOR JOB API (with resume)
 # -----------------------------------
 
 @app.route("/apply", methods=["POST"])
 def apply_job():
-    """Apply for a job."""
+    """Apply for a job with optional resume upload."""
     try:
-        data = request.get_json()
-        existing = Application.query.filter_by(
-            user_id=data["user_id"], job_id=data["job_id"]).first()
+        user_id = request.form.get("user_id") or (request.get_json() or {}).get("user_id")
+        job_id = request.form.get("job_id") or (request.get_json() or {}).get("job_id")
+
+        if not user_id or not job_id:
+            return jsonify({"message": "user_id and job_id required"}), 400
+
+        existing = Application.query.filter_by(user_id=user_id, job_id=job_id).first()
         if existing:
             return jsonify({"message": "Already Applied"}), 409
 
-        app_entry = Application(user_id=data["user_id"], job_id=data["job_id"])
+        resume_filename = None
+        if "resume" in request.files:
+            file = request.files["resume"]
+            if file.filename:
+                resume_filename = f"{user_id}_{job_id}_{secure_filename(file.filename)}"
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], resume_filename))
+
+        app_entry = Application(user_id=user_id, job_id=job_id, resume=resume_filename)
         db.session.add(app_entry)
         db.session.commit()
         return jsonify({"message": "Application Submitted Successfully"}), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": str(e)}), 500
+
+# -----------------------------------
+# DOWNLOAD RESUME API
+# -----------------------------------
+
+@app.route("/resume/<filename>", methods=["GET"])
+def download_resume(filename):
+    """Download a resume file."""
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename, as_attachment=True)
 
 # -----------------------------------
 # GET MY APPLICATIONS API (Candidate)
@@ -337,7 +382,7 @@ def my_applications(user_id):
         ).filter(Application.user_id == user_id).all()
 
         return jsonify([{
-            "id": a.id, "status": a.status,
+            "id": a.id, "status": a.status, "resume": a.resume,
             "job": {"id": j.id, "title": j.title, "company": j.company, "location": j.location}
         } for a, j in apps]), 200
     except Exception as e:
@@ -356,7 +401,7 @@ def job_applications(job_id):
         ).filter(Application.job_id == job_id).all()
 
         return jsonify([{
-            "id": a.id, "status": a.status,
+            "id": a.id, "status": a.status, "resume": a.resume,
             "applicant": {"id": u.id, "name": u.name, "email": u.email}
         } for a, u in apps]), 200
     except Exception as e:
@@ -379,6 +424,31 @@ def update_application_status(id):
         return jsonify({"message": "Status Updated Successfully"}), 200
     except Exception as e:
         db.session.rollback()
+        return jsonify({"message": str(e)}), 500
+
+# -----------------------------------
+# DASHBOARD STATS API
+# -----------------------------------
+
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    """Get dashboard statistics."""
+    try:
+        total_jobs = Job.query.count()
+        total_users = User.query.count()
+        total_applications = Application.query.count()
+        status_counts = {
+            "Applied": Application.query.filter_by(status="Applied").count(),
+            "Shortlisted": Application.query.filter_by(status="Shortlisted").count(),
+            "Rejected": Application.query.filter_by(status="Rejected").count(),
+        }
+        return jsonify({
+            "total_jobs": total_jobs,
+            "total_users": total_users,
+            "total_applications": total_applications,
+            "status_counts": status_counts
+        }), 200
+    except Exception as e:
         return jsonify({"message": str(e)}), 500
 
 # -----------------------------------

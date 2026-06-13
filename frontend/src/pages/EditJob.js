@@ -11,22 +11,17 @@ function EditJob() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
-  const [job, setJob] = useState({ title: "", company: "", location: "", salary: "", description: "" });
+  const [job, setJob] = useState({ title: "", company: "", location: "", salary: "", description: "", expires_at: "" });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchJob();
-  }, []);
+  useEffect(() => { fetchJob(); }, []);
 
   const fetchJob = async () => {
     try {
       const response = await axios.get(`${API}/job/${id}`);
       setJob(response.data);
-    } catch (error) {
-      toast.error("Failed to load job");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { toast.error("Failed to load job"); }
+    finally { setLoading(false); }
   };
 
   if (!user || (user.role !== "admin" && user.role !== "recruiter")) {
@@ -41,12 +36,10 @@ function EditJob() {
       await axios.put(`${API}/job/${id}`, job);
       toast.success("Job Updated Successfully");
       navigate("/admin");
-    } catch (error) {
-      toast.error("Failed to Update Job");
-    }
+    } catch (error) { toast.error("Failed to Update Job"); }
   };
 
-  if (loading) return <><Navbar /><div className="add-job-container"><p>Loading...</p></div></>;
+  if (loading) return <><Navbar /><div className="add-job-container"><div className="spinner-container"><div className="spinner"></div></div></div></>;
 
   return (
     <>
@@ -59,6 +52,7 @@ function EditJob() {
             <input type="text" name="company" placeholder="Company Name" value={job.company} onChange={handleChange} required />
             <input type="text" name="location" placeholder="Location" value={job.location} onChange={handleChange} required />
             <input type="text" name="salary" placeholder="Salary" value={job.salary} onChange={handleChange} required />
+            <input type="date" name="expires_at" value={job.expires_at || ""} onChange={handleChange} />
             <textarea name="description" placeholder="Job Description" value={job.description} onChange={handleChange} required></textarea>
             <button type="submit">Update Job</button>
           </form>

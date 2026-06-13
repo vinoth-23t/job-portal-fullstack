@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
@@ -10,6 +10,11 @@ const API = process.env.REACT_APP_API_URL || "https://job-portal-backend-czgj.on
 function Login() {
   const navigate = useNavigate();
   const [user, setUser] = useState({ email: "", password: "" });
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("user"));
+    if (stored) navigate(stored.role === "candidate" ? "/jobs" : "/admin");
+  }, []);
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
