@@ -183,6 +183,76 @@ body.dark .auth-footer {
 body.dark .auth-footer h2 {
   color: #fff;
 }
+body.dark .login-right,
+body.dark .register-right {
+  background: #1a1a2e;
+}
+body.dark .login-container,
+body.dark .register-container {
+  background: #1a1a2e;
+}
+body.dark .add-job-container {
+  background: #1a1a2e;
+}
+body.dark .add-job-box h2 {
+  color: #fff;
+}
+body.dark .add-job-box p {
+  color: #ccc;
+}
+body.dark .hero-section {
+  background: linear-gradient(135deg, #0f3460, #1a1a2e);
+}
+body.dark .about-section {
+  background: #16213e;
+  color: #e0e0e0;
+}
+body.dark .about-content h1,
+body.dark .about-content p {
+  color: #e0e0e0;
+}
+body.dark .feature-card,
+body.dark .category-card,
+body.dark .testimonial-card {
+  background: #0f3460;
+  color: #e0e0e0;
+}
+body.dark .feature-card h3,
+body.dark .category-card {
+  color: #e0e0e0;
+}
+body.dark .feature-card p,
+body.dark .testimonial-card p {
+  color: #ccc;
+}
+body.dark .category-section,
+body.dark .testimonial-section,
+body.dark .features-section {
+  background: #1a1a2e;
+}
+body.dark .category-section h1,
+body.dark .testimonial-section h1 {
+  color: #e0e0e0;
+}
+body.dark .footer {
+  background: #0f3460;
+}
+body.dark .stat-box {
+  background: #0f3460;
+  color: #e0e0e0;
+}
+body.dark .stat-box h1 {
+  color: #64b5f6;
+}
+body.dark .stat-box p {
+  color: #ccc;
+}
+body.dark .jobs-container {
+  background: #1a1a2e;
+}
+body.dark .dashboard-container {
+  background: #1a1a2e;
+}
 
 @media (max-width: 768px) {
   .navbar {
