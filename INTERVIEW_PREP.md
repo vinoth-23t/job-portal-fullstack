@@ -349,3 +349,340 @@ The database has a uniqueness check (`user_id` + `job_id`). SQLAlchemy checks fo
 5. **Login as Candidate again** → Show status changed to "Shortlisted"
 6. **Toggle dark mode** → Show persistence
 7. **Show responsive** → Resize browser to mobile width
+
+
+---
+
+## React Specific Questions
+
+### Q: What is the Virtual DOM?
+
+- A lightweight copy of the real DOM kept in memory
+- When state changes, React compares new virtual DOM with old one (diffing)
+- Only updates the changed parts in the real DOM
+- This makes React fast — avoids full page re-renders
+
+### Q: What are React Hooks? Which ones did you use?
+
+| Hook | Usage in this project |
+|------|----------------------|
+| `useState` | Form inputs, job list, loading state, modal visibility |
+| `useEffect` | Fetch data on component mount, auto-redirect |
+| `useNavigate` | Programmatic navigation after login/logout |
+| `useParams` | Get job ID from URL in EditJob page |
+
+### Q: What is useEffect and when does it run?
+
+```javascript
+useEffect(() => {
+    fetchJobs();  // Runs after component renders
+}, []);           // Empty array = run only once (on mount)
+
+useEffect(() => {
+    fetchJobs();
+}, [page]);       // Runs when 'page' changes
+```
+
+### Q: What is conditional rendering?
+
+Showing/hiding UI elements based on conditions:
+```javascript
+{user.role === "admin" && <button>Delete User</button>}
+{loading ? <Spinner /> : <JobList />}
+```
+
+### Q: What is prop drilling and how to avoid it?
+
+- Passing props through many levels of components
+- Not a big issue in this app (only 2 levels deep)
+- Solutions: Context API, Redux, or Zustand for larger apps
+
+### Q: Difference between controlled and uncontrolled components?
+
+- **Controlled:** Input value is managed by React state (`value={state}` + `onChange`)
+- **Uncontrolled:** Input manages its own state (use `ref` to read value)
+- This project uses controlled components for all forms
+
+### Q: What is React Router and how does it work?
+
+- Client-side routing — no page reload
+- URL changes, React renders different components
+- `<Route path="/jobs" element={<Jobs />} />`
+- `useNavigate()` for programmatic navigation
+- Nginx config `try_files $uri /index.html` ensures deep links work
+
+---
+
+## Python/Flask Specific Questions
+
+### Q: What is a decorator in Python? How is `@app.route` a decorator?
+
+- A decorator wraps a function with additional behavior
+- `@app.route("/login")` registers the function as a URL handler
+- When someone visits `/login`, Flask calls that function
+
+### Q: What is WSGI?
+
+- Web Server Gateway Interface — standard for Python web apps
+- Defines how web server communicates with Python application
+- Gunicorn is a WSGI server, Flask is a WSGI application
+- Gunicorn receives HTTP request → passes to Flask → returns response
+
+### Q: What is `__tablename__` in SQLAlchemy?
+
+- Specifies the actual table name in the database
+- Without it, SQLAlchemy generates one from the class name
+- `__tablename__ = "users"` → creates/uses table named "users"
+
+### Q: What is a Foreign Key and how did you use it?
+
+```python
+class Job(db.Model):
+    posted_by = db.Column(db.Integer, db.ForeignKey("users.id"))
+
+class Application(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    job_id = db.Column(db.Integer, db.ForeignKey("jobs.id"))
+```
+- Links records between tables
+- `posted_by` connects a job to the user who created it
+- Enables relational queries (who posted this job? who applied?)
+
+### Q: What is the difference between `GET` and `POST`?
+
+| GET | POST |
+|-----|------|
+| Retrieve data | Send/create data |
+| Parameters in URL | Data in request body |
+| Cacheable | Not cacheable |
+| Idempotent (safe to repeat) | Not idempotent |
+| Example: `/jobs?search=python` | Example: `/login` with email/password |
+
+### Q: What are HTTP status codes you used?
+
+| Code | Meaning | Used for |
+|------|---------|----------|
+| 200 | OK | Successful GET/PUT |
+| 201 | Created | Successful POST (new resource) |
+| 400 | Bad Request | Missing required fields |
+| 401 | Unauthorized | Invalid login credentials |
+| 403 | Forbidden | Recruiter deleting another's job |
+| 404 | Not Found | Job/User doesn't exist |
+| 409 | Conflict | User already exists / Already applied |
+| 500 | Server Error | Unexpected exception |
+
+---
+
+## Database Questions
+
+### Q: What is an ORM?
+
+- Object-Relational Mapping
+- Maps database tables to Python classes
+- Maps rows to objects, columns to attributes
+- Write Python instead of SQL: `User.query.filter_by(email="x").first()`
+- SQLAlchemy generates: `SELECT * FROM users WHERE email = 'x' LIMIT 1`
+
+### Q: What is the difference between SQL and NoSQL?
+
+| SQL (SQLite/PostgreSQL) | NoSQL (MongoDB) |
+|------------------------|-----------------|
+| Tables with rows/columns | Collections with documents |
+| Fixed schema | Flexible schema |
+| Relationships via foreign keys | Embedded/referenced documents |
+| Good for structured data | Good for unstructured/changing data |
+| Used in this project ✓ | Would work but overkill for this |
+
+### Q: What is database migration?
+
+- Changing database schema (add column, rename table) without losing data
+- Tools: Alembic (for SQLAlchemy), Flask-Migrate
+- Not used in this POC (db.create_all() creates fresh tables)
+- In production: `flask db migrate` → `flask db upgrade`
+
+### Q: What is an index and when would you add one?
+
+- Speeds up searches on specific columns
+- Like a book's index — find data without scanning every row
+- Would add on: `User.email` (login lookups), `Job.title` (search)
+- Tradeoff: faster reads, slightly slower writes
+
+### Q: What is a JOIN? Where did you use it?
+
+```python
+# Get applications with job details
+db.session.query(Application, Job).join(
+    Job, Application.job_id == Job.id
+).filter(Application.user_id == user_id).all()
+```
+- Combines data from two tables based on a relationship
+- Used in: My Applications (application + job info), Job Applicants (application + user info)
+
+---
+
+## Security Questions
+
+### Q: What is SQL Injection? Are you protected?
+
+- Attacker inputs SQL code in form fields: `' OR 1=1 --`
+- **Yes, protected** — SQLAlchemy ORM uses parameterized queries
+- Never concatenates user input into SQL strings
+- ORM does: `WHERE email = ?` (parameter binding)
+
+### Q: What is XSS (Cross-Site Scripting)?
+
+- Attacker injects JavaScript into your page via input fields
+- React auto-escapes content rendered with `{}` — protected by default
+- Only vulnerable if using `dangerouslySetInnerHTML` (we don't)
+
+### Q: What is HTTPS and why is it important?
+
+- Encrypts data between browser and server
+- Without it, passwords travel as plain text
+- Render provides HTTPS automatically for all deployed apps
+- Prevents man-in-the-middle attacks
+
+### Q: What is rate limiting?
+
+- Restricting how many requests a user can make per time period
+- Prevents brute-force login attacks, API abuse
+- Implementation: Flask-Limiter (`@limiter.limit("5 per minute")`)
+- Not implemented in this POC
+
+---
+
+## DevOps / Deployment Questions
+
+### Q: What is a reverse proxy?
+
+- Server that sits between client and backend
+- Client → Nginx → Flask
+- Benefits: load balancing, SSL termination, serve static files, hide backend details
+- In our app: nginx serves React + proxies /api routes to Flask
+
+### Q: What is the difference between `CMD` and `ENTRYPOINT` in Dockerfile?
+
+| CMD | ENTRYPOINT |
+|-----|-----------|
+| Default command, can be overridden | Always runs, can't be easily overridden |
+| We use: `CMD ["/start.sh"]` | Used when container has one specific purpose |
+
+### Q: What is `.dockerignore`?
+
+- Like `.gitignore` but for Docker builds
+- Excludes files from being copied into the image
+- Reduces image size, speeds up builds
+- We exclude: `node_modules`, `.git`, `screenshots`
+
+### Q: What is `docker-compose` vs `Dockerfile`?
+
+| Dockerfile | docker-compose |
+|-----------|---------------|
+| Builds ONE image | Orchestrates MULTIPLE containers |
+| Defines what's inside container | Defines how containers connect |
+| `docker build` | `docker-compose up` |
+| Used for Render deployment | Used for local development |
+
+### Q: What are environment variables and why use them?
+
+- Configuration values set outside the code
+- `DATABASE_URL`, `REACT_APP_API_URL`
+- Same code works in different environments (dev/staging/prod)
+- Keeps secrets out of source code
+
+---
+
+## JavaScript Questions
+
+### Q: What is async/await?
+
+```javascript
+// Without: callback hell or .then() chains
+// With async/await: reads like synchronous code
+const handleLogin = async () => {
+    try {
+        const response = await axios.post("/login", data);
+        // response is available here
+    } catch (error) {
+        // handle error
+    }
+};
+```
+
+### Q: What is localStorage?
+
+- Browser storage (key-value, strings only)
+- Persists even after closing browser
+- 5-10MB limit
+- We store: user object (JSON stringified), theme preference
+- `localStorage.setItem("user", JSON.stringify(user))`
+- `JSON.parse(localStorage.getItem("user"))`
+
+### Q: What is the spread operator (`...`)?
+
+```javascript
+// Copy + modify object
+setJob({ ...job, [e.target.name]: e.target.value });
+// Equivalent to: copy all job fields, then override the changed one
+```
+
+### Q: What is destructuring?
+
+```javascript
+const { id } = useParams();        // Extract 'id' from params object
+const [jobs, setJobs] = useState([]); // Array destructuring from useState
+```
+
+### Q: What is `FormData` and when do you use it?
+
+- JavaScript object for sending files + data together
+- Required for `multipart/form-data` (file uploads)
+- Used when candidate applies with resume:
+```javascript
+const formData = new FormData();
+formData.append("resume", file);
+formData.append("user_id", user.id);
+```
+
+---
+
+## Scenario-Based Questions
+
+### Q: User reports "login not working." How do you debug?
+
+1. Check browser console for errors
+2. Check Network tab — is the request reaching the backend?
+3. Check response status code (401? 500? CORS error?)
+4. Check backend logs (`docker logs container_name`)
+5. Test API directly with curl
+6. Check if database has the user record
+
+### Q: The app is slow. How do you improve performance?
+
+- Add database indexes on searched columns
+- Implement caching (Redis) for repeated queries
+- Lazy load external jobs (don't fetch on every page load)
+- Compress images/assets
+- Use CDN for static files
+- Pagination (already implemented ✓)
+
+### Q: A recruiter says they can see another recruiter's applicants. How do you fix?
+
+- Check the `job-applications` endpoint
+- Add filter: only return applications for jobs where `posted_by == requesting_user_id`
+- Already fixed in frontend (filter by `posted_by`)
+- Should also be enforced in backend for security
+
+### Q: How would you add email notifications?
+
+- Use a library like Flask-Mail or SendGrid API
+- On application submit: send email to recruiter
+- On status change: send email to candidate
+- For POC: could simulate with toast "Email sent to recruiter"
+- Production: use background task queue (Celery) to not block the API
+
+### Q: How would you add real-time updates?
+
+- WebSockets (Flask-SocketIO) for instant notifications
+- Or polling: frontend checks for updates every 30 seconds
+- Use case: recruiter sees new application appear without refreshing
