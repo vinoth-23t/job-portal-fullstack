@@ -1,148 +1,73 @@
 .jobs-container {
-  min-height: 100vh;
-  background: #f1f5f9;
-  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
-
 .jobs-container h1 {
   text-align: center;
-  margin-bottom: 40px;
-  color: #1e293b;
-  font-size: 40px;
+  margin-bottom: 20px;
 }
-
 .jobs-container h2 {
-  margin-top: 50px;
-  margin-bottom: 25px;
-  color: #2563eb;
-  font-size: 28px;
+  margin: 30px 0 15px;
+  color: #333;
 }
-
-/* Grid Layout */
-
 .jobs-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(320px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
 }
-
-/* Job Card */
-
 .job-card {
-  background: white;
-  padding: 25px;
-  border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-  transition: 0.3s;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: box-shadow 0.2s;
 }
-
 .job-card:hover {
-  transform: translateY(-6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
-
-/* Job Title */
-
 .job-card h3 {
-  color: #1e293b;
-  margin-bottom: 15px;
-  font-size: 22px;
-}
-
-/* Paragraphs */
-
-.job-card p {
-  color: #475569;
   margin-bottom: 10px;
-  line-height: 1.5;
+  color: #2c3e50;
 }
-
-/* Labels */
-
-.job-card strong {
-  color: #0f172a;
-  margin-right: 5px;
+.job-card p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 14px;
 }
-
-/* Apply Button */
-
-.job-card a {
-  margin-top: 18px;
-  display: inline-block;
-  text-align: center;
-  background: #2563eb;
-  color: white;
-  text-decoration: none;
-  padding: 12px;
-  border-radius: 8px;
-  transition: 0.3s;
-  font-weight: 500;
+.job-card .description {
+  margin-top: 10px;
+  color: #777;
+  font-size: 13px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-
-.job-card a:hover {
-  background: #1d4ed8;
-}
-
-/* Mobile */
-
-@media (max-width: 768px) {
-
-  .jobs-container {
-    padding: 20px;
-  }
-
-  .jobs-container h1 {
-    font-size: 30px;
-  }
-
-  .jobs-container h2 {
-    font-size: 24px;
-  }
-}
-/* Description */
-
-.description {
-  margin-top: 12px;
-  color: #475569;
-  line-height: 1.6;
-}
-
-/* Apply Button */
-
 .apply-btn {
-  margin-top: 20px;
-  width: 100%;
-  text-align: center;
-  background: #2563eb;
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #4a90d9;
   color: white;
-  text-decoration: none;
-  padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: 0.3s;
-  font-size: 15px;
-  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  font-size: 14px;
 }
-
 .apply-btn:hover {
-  background: #1d4ed8;
+  background: #357abd;
 }
-
-/* Equal Height Cards */
-
-.job-card {
-  min-height: 340px;
-}
-
 .search-form {
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 .search-form input {
   padding: 10px 15px;
@@ -158,4 +83,63 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin: 30px 0;
+}
+.pagination button {
+  padding: 8px 16px;
+  background: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.pagination button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  padding: 50px;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #4a90d9;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.jobs-footer {
+  text-align: center;
+  padding: 30px;
+  background: #2c3e50;
+  color: white;
+  margin-top: 40px;
+}
+.jobs-footer h2 {
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .jobs-grid {
+    grid-template-columns: 1fr;
+  }
+  .search-form input {
+    width: 100%;
+  }
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0 10px;
+  }
 }

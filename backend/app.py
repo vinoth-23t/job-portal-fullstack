@@ -21,6 +21,7 @@ CORS(
     origins=[
         "https://job-portal-fullstack-zeta.vercel.app",
         "https://job-portal-frontend.onrender.com",
+        "https://job-portal-fullstack-1-2ms0.onrender.com",
         os.getenv("FRONTEND_URL", "http://localhost:3000")
     ]
 )
@@ -202,9 +203,12 @@ def add_job():
 
 @app.route("/jobs", methods=["GET"])
 def get_jobs():
-    """Retrieve all job listings with optional search."""
+    """Retrieve job listings with optional search and pagination."""
     try:
         query = request.args.get("search", "").strip()
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 10, type=int)
+
         jobs = Job.query
         if query:
             jobs = jobs.filter(
@@ -214,12 +218,17 @@ def get_jobs():
                     Job.location.ilike(f"%{query}%")
                 )
             )
-        jobs = jobs.all()
-        return jsonify([{
-            "id": j.id, "title": j.title, "company": j.company,
-            "location": j.location, "salary": j.salary,
-            "description": j.description, "posted_by": j.posted_by
-        } for j in jobs]), 200
+        total = jobs.count()
+        jobs = jobs.order_by(Job.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
+
+        return jsonify({
+            "jobs": [{"id": j.id, "title": j.title, "company": j.company,
+                      "location": j.location, "salary": j.salary,
+                      "description": j.description, "posted_by": j.posted_by} for j in jobs],
+            "total": total,
+            "page": page,
+            "pages": (total + per_page - 1) // per_page
+        }), 200
     except Exception as e:
         return jsonify({"message": str(e)}), 500
 
@@ -285,7 +294,6 @@ def delete_job(id):
         if user_role == "recruiter" and job.posted_by != user_id:
             return jsonify({"message": "You can only delete your own jobs"}), 403
 
-        # Delete related applications first
         Application.query.filter_by(job_id=id).delete()
         db.session.delete(job)
         db.session.commit()
@@ -352,6 +360,25 @@ def job_applications(job_id):
             "applicant": {"id": u.id, "name": u.name, "email": u.email}
         } for a, u in apps]), 200
     except Exception as e:
+        return jsonify({"message": str(e)}), 500
+
+# -----------------------------------
+# UPDATE APPLICATION STATUS API
+# -----------------------------------
+
+@app.route("/application/<int:id>", methods=["PUT"])
+def update_application_status(id):
+    """Update application status (Shortlisted/Rejected)."""
+    try:
+        data = request.get_json()
+        app_entry = Application.query.get(id)
+        if not app_entry:
+            return jsonify({"message": "Application Not Found"}), 404
+        app_entry.status = data["status"]
+        db.session.commit()
+        return jsonify({"message": "Status Updated Successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
         return jsonify({"message": str(e)}), 500
 
 # -----------------------------------

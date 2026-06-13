@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AddJob.css";
@@ -16,9 +17,9 @@ function Profile() {
     try {
       const response = await axios.put(`${API}/profile/${user.id}`, form);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-      alert("Profile Updated Successfully");
+      toast.success("Profile Updated Successfully");
     } catch (error) {
-      alert("Failed to Update Profile");
+      toast.error("Failed to Update Profile");
     }
   };
 

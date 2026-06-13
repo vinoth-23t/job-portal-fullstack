@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AddJob.css";
@@ -7,34 +8,22 @@ const API = process.env.REACT_APP_API_URL || "https://job-portal-backend-czgj.on
 
 function AddJob() {
   const user = JSON.parse(localStorage.getItem("user"));
-  const [job, setJob] = useState({
-    title: "", company: "", location: "", salary: "", description: ""
-  });
+  const [job, setJob] = useState({ title: "", company: "", location: "", salary: "", description: "" });
 
   if (!user || (user.role !== "admin" && user.role !== "recruiter")) {
-    return (
-      <>
-        <Navbar />
-        <div className="access-denied">
-          <h1>Access Denied</h1>
-          <p>Only Recruiters and Admins can add jobs.</p>
-        </div>
-      </>
-    );
+    return <><Navbar /><div className="access-denied"><h1>Access Denied</h1><p>Only Recruiters and Admins can add jobs.</p></div></>;
   }
 
-  const handleChange = (e) => {
-    setJob({ ...job, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setJob({ ...job, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API}/add-job`, { ...job, posted_by: user.id });
-      alert(response.data.message);
+      await axios.post(`${API}/add-job`, { ...job, posted_by: user.id });
+      toast.success("Job Added Successfully");
       setJob({ title: "", company: "", location: "", salary: "", description: "" });
     } catch (error) {
-      alert("Failed to Add Job");
+      toast.error("Failed to Add Job");
     }
   };
 

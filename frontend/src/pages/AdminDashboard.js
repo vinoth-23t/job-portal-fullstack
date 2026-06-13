@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import "./AdminDashboard.css";
@@ -7,9 +9,11 @@ const API = process.env.REACT_APP_API_URL || "https://job-portal-backend-czgj.on
 
 function AdminDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [users, setUsers] = useState([]);
   const [applications, setApplications] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchJobs();
@@ -18,10 +22,13 @@ function AdminDashboard() {
 
   const fetchJobs = async () => {
     try {
-      const response = await axios.get(`${API}/jobs`);
-      setJobs(Array.isArray(response.data) ? response.data : []);
+      const response = await axios.get(`${API}/jobs?per_page=100`);
+      const data = response.data;
+      setJobs(Array.isArray(data) ? data : data.jobs || []);
     } catch (error) {
-      alert("Failed to Fetch Jobs");
+      toast.error("Failed to Fetch Jobs");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,7 +37,7 @@ function AdminDashboard() {
       const response = await axios.get(`${API}/users`);
       setUsers(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      alert("Failed to Fetch Users");
+      toast.error("Failed to Fetch Users");
     }
   };
 
@@ -39,7 +46,17 @@ function AdminDashboard() {
       const response = await axios.get(`${API}/job-applications/${jobId}`);
       setApplications({ ...applications, [jobId]: response.data });
     } catch (error) {
-      alert("Failed to Fetch Applicants");
+      toast.error("Failed to Fetch Applicants");
+    }
+  };
+
+  const updateStatus = async (appId, status, jobId) => {
+    try {
+      await axios.put(`${API}/application/${appId}`, { status });
+      toast.success(`Marked as ${status}`);
+      viewApplicants(jobId);
+    } catch (error) {
+      toast.error("Failed to Update Status");
     }
   };
 
@@ -48,13 +65,11 @@ function AdminDashboard() {
   const deleteJob = async (id) => {
     if (!window.confirm("Delete this job?")) return;
     try {
-      await axios.delete(`${API}/job/${id}`, {
-        data: { role: user.role, user_id: user.id }
-      });
-      alert("Job Deleted Successfully");
+      await axios.delete(`${API}/job/${id}`, { data: { role: user.role, user_id: user.id } });
+      toast.success("Job Deleted");
       fetchJobs();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to Delete Job");
+      toast.error(error.response?.data?.message || "Failed to Delete Job");
     }
   };
 
@@ -62,12 +77,14 @@ function AdminDashboard() {
     if (!window.confirm("Delete this user?")) return;
     try {
       await axios.delete(`${API}/user/${id}`);
-      alert("User Deleted Successfully");
+      toast.success("User Deleted");
       fetchUsers();
     } catch (error) {
-      alert("Failed to Delete User");
+      toast.error("Failed to Delete User");
     }
   };
+
+  const myJobs = jobs.filter(job => user.role === "admin" || job.posted_by === user.id);
 
   return (
     <>
@@ -78,7 +95,7 @@ function AdminDashboard() {
         <div className="dashboard-stats">
           <div className="dashboard-card">
             <h2>Total Jobs</h2>
-            <p>{jobs.length}</p>
+            <p>{myJobs.length}</p>
           </div>
           {user.role === "admin" && (
             <div className="dashboard-card">
@@ -92,57 +109,67 @@ function AdminDashboard() {
           </div>
         </div>
 
-        <div className="jobs-section">
-          <h2>Posted Jobs</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Company</th>
-                <th>Location</th>
-                <th>Salary</th>
-                <th>Applicants</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.length > 0 ? (
-                jobs.map((job) => (
-                  <>
-                    <tr key={job.id}>
-                      <td>{job.title}</td>
-                      <td>{job.company}</td>
-                      <td>{job.location}</td>
-                      <td>{job.salary}</td>
-                      <td>
-                        <button className="view-btn" onClick={() => viewApplicants(job.id)}>
-                          View
-                        </button>
-                      </td>
-                      <td>
-                        {(user.role === "admin" || job.posted_by === user.id) && (
-                          <button className="delete-btn" onClick={() => deleteJob(job.id)}>
-                            Delete
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                    {applications[job.id] && applications[job.id].length > 0 && (
-                      <tr key={`apps-${job.id}`}>
-                        <td colSpan="6">
-                          <strong>Applicants:</strong>{" "}
-                          {applications[job.id].map((a) => `${a.applicant.name} (${a.applicant.email})`).join(", ")}
+        {loading ? (
+          <div className="spinner-container"><div className="spinner"></div></div>
+        ) : (
+          <div className="jobs-section">
+            <h2>Posted Jobs</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Company</th>
+                  <th>Location</th>
+                  <th>Salary</th>
+                  <th>Applicants</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myJobs.length > 0 ? (
+                  myJobs.map((job) => (
+                    <>
+                      <tr key={job.id}>
+                        <td>{job.title}</td>
+                        <td>{job.company}</td>
+                        <td>{job.location}</td>
+                        <td>{job.salary}</td>
+                        <td>
+                          <button className="view-btn" onClick={() => viewApplicants(job.id)}>View</button>
+                        </td>
+                        <td>
+                          <button className="edit-btn" onClick={() => navigate(`/edit-job/${job.id}`)}>Edit</button>
+                          <button className="delete-btn" onClick={() => deleteJob(job.id)}>Delete</button>
                         </td>
                       </tr>
-                    )}
-                  </>
-                ))
-              ) : (
-                <tr><td colSpan="6">No Jobs Available</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                      {applications[job.id] && applications[job.id].length > 0 && (
+                        <tr key={`apps-${job.id}`}>
+                          <td colSpan="6">
+                            <div className="applicants-list">
+                              {applications[job.id].map((a) => (
+                                <div key={a.id} className="applicant-row">
+                                  <span>{a.applicant.name} ({a.applicant.email})</span>
+                                  <span className={`status-badge status-${a.status.toLowerCase()}`}>{a.status}</span>
+                                  <select onChange={(e) => updateStatus(a.id, e.target.value, job.id)} value={a.status}>
+                                    <option value="Applied">Applied</option>
+                                    <option value="Shortlisted">Shortlisted</option>
+                                    <option value="Rejected">Rejected</option>
+                                  </select>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
+                  ))
+                ) : (
+                  <tr><td colSpan="6">No Jobs Available</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {user.role === "admin" && (
           <div className="jobs-section">
@@ -162,7 +189,7 @@ function AdminDashboard() {
                     <tr key={u.id}>
                       <td>{u.name}</td>
                       <td>{u.email}</td>
-                      <td>{u.role}</td>
+                      <td><span className={`role-badge role-${u.role}`}>{u.role}</span></td>
                       <td>
                         {u.role !== "admin" && (
                           <button className="delete-btn" onClick={() => deleteUser(u.id)}>Delete</button>

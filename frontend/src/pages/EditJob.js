@@ -33,9 +33,7 @@ function EditJob() {
     return <><Navbar /><div className="access-denied"><h1>Access Denied</h1></div></>;
   }
 
-  const handleChange = (e) => {
-    setJob({ ...job, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setJob({ ...job, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
